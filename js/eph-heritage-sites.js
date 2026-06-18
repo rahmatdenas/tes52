@@ -36,7 +36,7 @@ function formatWikidataDate(dateString, precision) {
   else if (prec === 7) {
     // Presisi Abad (Contoh: Abad ke-20)
     let century = Math.ceil(yearNum / 100);
-    return `Abad ke-${century}`;
+    return `abad ke-${century}`;
   } 
   else {
     return yearStr;
@@ -293,11 +293,17 @@ function renderDynamicDataInPanel(qid) {
       'pembangunan kembali': 5
     };
 
-    record.events.sort((a, b) => {
+record.events.sort((a, b) => {
+      // 1. Prioritaskan pengurutan berdasarkan TAHUN (Kronologis)
+      if (a.sortYear !== b.sortYear) {
+        return a.sortYear - b.sortYear;
+      }
+      
+      // 2. JIKA tahunnya kebetulan sama persis (pemecah seri), 
+      // barulah urutkan berdasarkan hierarki jenis peristiwa
       let orderA = EVENT_ORDER[a.label.toLowerCase()] || 99;
       let orderB = EVENT_ORDER[b.label.toLowerCase()] || 99;
-      if (orderA !== orderB) return orderA - orderB;
-      return a.sortYear - b.sortYear;
+      return orderA - orderB;
     });
 
 let tautanSuntingEvent = `<a href="${wikiBaseUrl}#P793" target="_blank" class="sunting-link" title="Sunting peristiwa di Wikidata"></a>`;
