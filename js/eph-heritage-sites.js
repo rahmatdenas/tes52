@@ -79,7 +79,7 @@ function loadPrimaryData() {
     })
     .catch(error => {
        console.error("Data utama gagal dimuat. Cek koneksi atau server Wikidata.", error);
-       alert("Maaf, server database sedang sibuk. Beberapa data mungkin tidak tampil.");
+       alert("Maaf, server database sedang sibuk. Coba lagi nanti.");
     });
 }
 function doPreProcessing() {
