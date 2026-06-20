@@ -701,14 +701,43 @@ function generateRecordDetails(qid) {
   // ---------------------------------
 
   // --- BARU MASUK KE KODE RINGKASAN YANG BARU ---
-  let wikiUrlUtama = `https://www.wikidata.org/wiki/${qid}`;
+let wikiUrlUtama = `https://www.wikidata.org/wiki/${qid}`;
   let tautanSuntingRingkasan = `<a href="${wikiUrlUtama}" target="_blank" class="sunting-link" title="Sunting data di Wikidata" aria-label="Sunting data di Wikidata"></a>`;
 
-// 2. Letakkan tautan sunting di dalam tag <h2>
-let designationsHtml = `<h2 style="margin-top:10px">Ringkasan ${tautanSuntingRingkasan}</h2>`;
-designationsHtml += '<ul class="designations">';
+  // =========================================================
+  // 2. LOGIKA PENENTUAN JUDUL DINAMIS
+  // =========================================================
+  
+  // A. Cek Kriteria 50 Tahun (Bersejarah)
+  let isBersejarah = false;
+  if (record.rawTahunBerdiri) {
+    let tahunBangunan = parseInt(record.rawTahunBerdiri.substring(0, 4));
+    let batasTahun = new Date().getFullYear() - 50;
+    if (tahunBangunan <= batasTahun) {
+      isBersejarah = true;
+    }
+  }
 
-let isFirstDesignation = true; // Mencegah duplikasi container peristiwa
+  // B. Cek Kriteria Masjid Besar
+  // Silakan ganti 'record.masukKlasterPenting' jika penanda di data Anda berbeda.
+  // Contoh alternatif jika dari nama: let isMasjidBesar = record.title.toLowerCase().includes('besar');
+  let isMasjidBesar = (record.masukKlasterPenting === true); 
+
+  // C. Tentukan Teks Akhir Berdasarkan Kombinasi
+  let teksJudul = 'Informasi'; // Nilai bawaan jika tidak memenuhi keduanya
+  
+  if (isBersejarah && isMasjidBesar) {
+    teksJudul = 'Masjid Besar dan Bersejarah';
+  } else if (isBersejarah) {
+    teksJudul = 'Masjid Bersejarah';
+  } else if (isMasjidBesar) {
+    teksJudul = 'Masjid Besar';
+  }
+
+  let designationsHtml = `<h2 style="margin-top:10px">${teksJudul} ${tautanSuntingRingkasan}</h2>`;
+  designationsHtml += '<ul class="designations">';
+
+  let isFirstDesignation = true; // Mencegah duplikasi container peristiwa
 
 Object.keys(record.designations)
   .map(id => [id, DESIGNATION_TYPES[id].order]) 
