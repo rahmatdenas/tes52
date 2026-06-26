@@ -32,124 +32,100 @@ const KUMPULAN_KUERI_0 = {
   }`,
 
   'pers': `SELECT DISTINCT ?siteQid ?siteLabel ?provinsiQid ?provinsiLabel ?p131LokasiLabel ?tahunBerdiriMentah ?tahunPresisi
-  WHERE {
-    VALUES ?jenis { <PLACEHOLDER_JENIS> } 
+WHERE {
+  VALUES ?jenis {<PLACEHOLDER_WILAYAH_1> } 
 
-    {
-     <PLACEHOLDER_WILAYAH_1>
-      ?p131Lokasi wdt:P131* ?provinsi .
-      ?site wdt:P31 ?jenis ;
-            wdt:P159 ?kantor .
-      ?kantor wdt:P131 ?p131Lokasi .
-    }
-    UNION
-    {
-      <PLACEHOLDER_WILAYAH_2>
-      ?site wdt:P31 ?jenis ;
-            wdt:P159 ?kantor .
-      ?kantor wdt:P131 ?p131Lokasi .
-    }
-    
-    OPTIONAL { 
-      ?site p:P571 ?inceptionStmt .
-      ?inceptionStmt psv:P571 ?inceptionNode .
-      ?inceptionNode wikibase:timeValue ?tahunBerdiriMentah ;
-                     wikibase:timePrecision ?tahunPresisi .
-    }
-    
-    BIND(SUBSTR(STR(?site), 32) AS ?siteQid) .
-    BIND(SUBSTR(STR(?provinsi), 32) AS ?provinsiQid) .
-    
-    SERVICE wikibase:label { bd:serviceParam wikibase:language "id". }
-  }`,
+  <PLACEHOLDER_WILAYAH_2>
+  
+  ?site wdt:P31 ?jenis ;
+        wdt:P159  ?kantor .
+  
+  ?kantor wdt:P131* ?provinsi .
+  
+  OPTIONAL { 
+    ?site p:P571 ?inceptionStmt .
+    ?inceptionStmt psv:P571 ?inceptionNode .
+    ?inceptionNode wikibase:timeValue ?tahunBerdiriMentah ;
+                   wikibase:timePrecision ?tahunPresisi .
+  }
+  
+  BIND(SUBSTR(STR(?site), 32) AS ?siteQid) .
+  BIND(SUBSTR(STR(?provinsi), 32) AS ?provinsiQid) .
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "id". }
+}`,
 
   'publikasi': `SELECT DISTINCT ?siteQid ?siteLabel ?provinsiQid ?provinsiLabel ?p131LokasiLabel ?tahunBerdiriMentah ?tahunPresisi
-  WHERE {
-    VALUES ?jenis { <PLACEHOLDER_JENIS> } 
+WHERE {
+  VALUES ?jenis {<PLACEHOLDER_WILAYAH_1> } 
 
-    {
-     <PLACEHOLDER_WILAYAH_1>
-      ?p131Lokasi wdt:P131* ?provinsi .
-      ?site wdt:P31 ?jenis ;
-            wdt:P291 ?terbitdi .
-      ?terbitdi wdt:P131 ?p131Lokasi .
-    }
-    UNION
-    {
-      <PLACEHOLDER_WILAYAH_2>
-      ?site wdt:P31 ?jenis ;
-            wdt:P291 ?terbitdi .
-      ?terbitdi wdt:P131 ?p131Lokasi .
-    }
-    
-    OPTIONAL { 
-      ?site p:P571 ?inceptionStmt .
-      ?inceptionStmt psv:P571 ?inceptionNode .
-      ?inceptionNode wikibase:timeValue ?tahunBerdiriMentah ;
-                     wikibase:timePrecision ?tahunPresisi .
-    }
-    
-    BIND(SUBSTR(STR(?site), 32) AS ?siteQid) .
-    BIND(SUBSTR(STR(?provinsi), 32) AS ?provinsiQid) .
-    
-    SERVICE wikibase:label { bd:serviceParam wikibase:language "id". }
-  }`,
+  <PLACEHOLDER_WILAYAH_2>
+  
+  ?site wdt:P31 ?jenis ;
+        wdt:P291  ?terbitdi .
+  
+  ?terbitdi wdt:P131* ?provinsi .
+  
+  OPTIONAL { 
+    ?site p:P571 ?inceptionStmt .
+    ?inceptionStmt psv:P571 ?inceptionNode .
+    ?inceptionNode wikibase:timeValue ?tahunBerdiriMentah ;
+                   wikibase:timePrecision ?tahunPresisi .
+  }
+  
+  BIND(SUBSTR(STR(?site), 32) AS ?siteQid) .
+  BIND(SUBSTR(STR(?provinsi), 32) AS ?provinsiQid) .
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "id". }
+}`,
 
   'fiksi': `SELECT DISTINCT ?siteQid ?siteLabel ?provinsiQid ?provinsiLabel ?p131LokasiLabel ?tahunBerdiriMentah ?tahunPresisi
-  WHERE {
-    VALUES ?jenis { <PLACEHOLDER_JENIS> } 
+WHERE {
+  VALUES ?jenis {<PLACEHOLDER_WILAYAH_1> } 
 
-    {
-     <PLACEHOLDER_WILAYAH_1>
-      ?p131Lokasi wdt:P131* ?provinsi .
-      ?site wdt:P31 ?jenis ;
-            wdt:P840 ?latar .
-      ?latar wdt:P131 ?p131Lokasi .
-    }
-    UNION
-    {
-      <PLACEHOLDER_WILAYAH_2>
-      ?site wdt:P31 ?jenis ;
-            wdt:P840 ?latar .
-      ?latar wdt:P131 ?p131Lokasi .
-    }
-    
-    OPTIONAL { 
-      ?site p:P571 ?inceptionStmt .
-      ?inceptionStmt psv:P571 ?inceptionNode .
-      ?inceptionNode wikibase:timeValue ?tahunBerdiriMentah ;
-                     wikibase:timePrecision ?tahunPresisi .
-    }
-    
-    BIND(SUBSTR(STR(?site), 32) AS ?siteQid) .
-    BIND(SUBSTR(STR(?provinsi), 32) AS ?provinsiQid) .
-    
-    SERVICE wikibase:label { bd:serviceParam wikibase:language "id". }
-  }`,
+  <PLACEHOLDER_WILAYAH_2>
+  
+  ?site wdt:P31 ?jenis ;
+        wdt:P840  ?latar .
+  
+  ?latar wdt:P131* ?provinsi .
+  
+  OPTIONAL { 
+    ?site p:P571 ?inceptionStmt .
+    ?inceptionStmt psv:P571 ?inceptionNode .
+    ?inceptionNode wikibase:timeValue ?tahunBerdiriMentah ;
+                   wikibase:timePrecision ?tahunPresisi .
+  }
+  
+  BIND(SUBSTR(STR(?site), 32) AS ?siteQid) .
+  BIND(SUBSTR(STR(?provinsi), 32) AS ?provinsiQid) .
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "id". }
+}`,
 
 'tokoh': `SELECT DISTINCT ?siteQid ?siteLabel ?provinsiQid ?provinsiLabel ?p131LokasiLabel ?tahunBerdiriMentah ?tahunPresisi
-  WHERE {
-    VALUES ?jenis { <PLACEHOLDER_JENIS> } 
+WHERE {
+  VALUES ?jenis {<PLACEHOLDER_WILAYAH_1> } 
 
-    <PLACEHOLDER_WILAYAH_1>
-    ?p131Lokasi wdt:P131* ?provinsi .
-    ?site wdt:P31 ?jenis ;
-          wdt:P19 ?lahir .
-    ?lahir wdt:P131* ?p131Lokasi .
-    
-    # Menarik P569 (tanggal lahir) khusus untuk tokoh
-    OPTIONAL { 
-      ?site p:P569 ?inceptionStmt .
-      ?inceptionStmt psv:P569 ?inceptionNode .
-      ?inceptionNode wikibase:timeValue ?tahunBerdiriMentah ;
-                     wikibase:timePrecision ?tahunPresisi .
-    }
-    
-    BIND(SUBSTR(STR(?site), 32) AS ?siteQid) .
-    BIND(SUBSTR(STR(?provinsi), 32) AS ?provinsiQid) .
-    
-    SERVICE wikibase:label { bd:serviceParam wikibase:language "id". }
-  }`,
+  <PLACEHOLDER_WILAYAH_2>
+  
+  ?site wdt:P31 ?jenis ;
+        wdt:P19  ?lahir .
+  
+  ?lahir wdt:P131* ?provinsi .
+  
+  OPTIONAL { 
+    ?site p:P571 ?inceptionStmt .
+    ?inceptionStmt psv:P571 ?inceptionNode .
+    ?inceptionNode wikibase:timeValue ?tahunBerdiriMentah ;
+                   wikibase:timePrecision ?tahunPresisi .
+  }
+  
+  BIND(SUBSTR(STR(?site), 32) AS ?siteQid) .
+  BIND(SUBSTR(STR(?provinsi), 32) AS ?provinsiQid) .
+  
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "id". }
+}`,
 'bahasa': `SELECT DISTINCT ?siteQid ?siteLabel ?provinsiQid ?provinsiLabel ?p131LokasiLabel ?tahunBerdiriMentah ?tahunPresisi
   WHERE {
     VALUES ?jenis { <PLACEHOLDER_JENIS> } 
