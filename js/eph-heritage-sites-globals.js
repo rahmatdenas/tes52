@@ -150,6 +150,69 @@ const KUMPULAN_KUERI_0 = {
     
     SERVICE wikibase:label { bd:serviceParam wikibase:language "id". }
   }`
+'bahasa': `SELECT DISTINCT ?siteQid ?siteLabel ?provinsiQid ?provinsiLabel ?p131LokasiLabel ?tahunBerdiriMentah ?tahunPresisi
+  WHERE {
+    VALUES ?jenis { <PLACEHOLDER_JENIS> } 
+
+    {
+     <PLACEHOLDER_WILAYAH_1>
+      ?p131Lokasi wdt:P131* ?provinsi .
+      ?site wdt:P31 ?jenis ;
+            wdt:P276 ?lokasi .
+      ?lokasi wdt:P131 ?p131Lokasi .
+    }
+    UNION
+    {
+      <PLACEHOLDER_WILAYAH_2>
+      ?site wdt:P31 ?jenis ;
+            wdt:P276 ?lokasi .
+      ?lokasi wdt:P131 ?p131Lokasi .
+    }
+    
+    OPTIONAL { 
+      ?site p:P571 ?inceptionStmt .
+      ?inceptionStmt psv:P571 ?inceptionNode .
+      ?inceptionNode wikibase:timeValue ?tahunBerdiriMentah ;
+                     wikibase:timePrecision ?tahunPresisi .
+    }
+    
+    BIND(SUBSTR(STR(?site), 32) AS ?siteQid) .
+    BIND(SUBSTR(STR(?provinsi), 32) AS ?provinsiQid) .
+    
+    SERVICE wikibase:label { bd:serviceParam wikibase:language "id". }
+  }`,
+
+  'kuliner': `SELECT DISTINCT ?siteQid ?siteLabel ?provinsiQid ?provinsiLabel ?p131LokasiLabel ?tahunBerdiriMentah ?tahunPresisi
+  WHERE {
+    VALUES ?jenis { <PLACEHOLDER_JENIS> } 
+
+    {
+     <PLACEHOLDER_WILAYAH_1>
+      ?p131Lokasi wdt:P131* ?provinsi .
+      ?site wdt:P31 ?jenis ;
+            wdt:P2341 ?asal .
+      ?asal wdt:P131 ?p131Lokasi .
+    }
+    UNION
+    {
+      <PLACEHOLDER_WILAYAH_2>
+      ?site wdt:P31 ?jenis ;
+            wdt:P2341 ?asal .
+      ?asal wdt:P131 ?p131Lokasi .
+    }
+    
+    OPTIONAL { 
+      ?site p:P571 ?inceptionStmt .
+      ?inceptionStmt psv:P571 ?inceptionNode .
+      ?inceptionNode wikibase:timeValue ?tahunBerdiriMentah ;
+                     wikibase:timePrecision ?tahunPresisi .
+    }
+    
+    BIND(SUBSTR(STR(?site), 32) AS ?siteQid) .
+    BIND(SUBSTR(STR(?provinsi), 32) AS ?provinsiQid) .
+    
+    SERVICE wikibase:label { bd:serviceParam wikibase:language "id". }
+  }`
 };
 
 const KUMPULAN_KUERI_1 = {
@@ -192,6 +255,23 @@ const KUMPULAN_KUERI_1 = {
     VALUES ?site { <PLACEHOLDER_QIDS> }
     ?site wdt:P19 ?lahir .
     ?lahir p:P625 ?coordStatement .
+    ?coordStatement ps:P625 ?coord .
+    FILTER NOT EXISTS { ?coordStatement pq:P518 ?x }
+    BIND (SUBSTR(STR(?site), 32) AS ?siteQid) .
+  }`
+  'bahasa': `SELECT DISTINCT ?siteQid ?coord WHERE {
+    VALUES ?site { <PLACEHOLDER_QIDS> }
+    ?site wdt:P276 ?lokasi .
+    ?lokasi p:P625 ?coordStatement .
+    ?coordStatement ps:P625 ?coord .
+    FILTER NOT EXISTS { ?coordStatement pq:P518 ?x }
+    BIND (SUBSTR(STR(?site), 32) AS ?siteQid) .
+  }`,
+
+  'kuliner': `SELECT DISTINCT ?siteQid ?coord WHERE {
+    VALUES ?site { <PLACEHOLDER_QIDS> }
+    ?site wdt:P2341 ?asal .
+    ?asal p:P625 ?coordStatement .
     ?coordStatement ps:P625 ?coord .
     FILTER NOT EXISTS { ?coordStatement pq:P518 ?x }
     BIND (SUBSTR(STR(?site), 32) AS ?siteQid) .
