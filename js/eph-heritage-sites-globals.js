@@ -126,18 +126,129 @@ function getSparqlQuery5(qid) {
 }
 
 function getSparqlQuery6(qid) {
-  return `SELECT ?siteQid ?kapasitas ?kondisiLabel WHERE {
+  // Ambil klaster yang sedang aktif
+  let klaster = typeof currentNamaKlaster !== 'undefined' ? currentNamaKlaster : 'Objek';
+
+  // 1. Data Universal (Semua Klaster Bisa Punya)
+  let selectClause = `SELECT ?siteQid (SAMPLE(?ketinggianVal) AS ?ketinggian) (SAMPLE(?luasVal) AS ?luas) `;
+  let whereClause = `
     VALUES ?site { wd:${qid} }
-    
-    # Kapasitas (P1083)
-    OPTIONAL { ?site wdt:P1083 ?kapasitas . }
-    
-    # Status Keadaan (P5817)
-    OPTIONAL { ?site wdt:P5817 ?kondisi . }
-    
-    BIND (SUBSTR(STR(?site), 32) AS ?siteQid) .
-    SERVICE wikibase:label { bd:serviceParam wikibase:language "id". }
-  } LIMIT 1`;
+    OPTIONAL { ?site wdt:P2044 ?ketinggianVal . }
+    OPTIONAL { ?site wdt:P2046 ?luasVal . }
+  `;
+
+  // 2. KLASTER BANGUNAN & FASILITAS (Termasuk Museum dan Stasiun)
+  const klasterBangunan = [
+    'Masjid', 'Bangunan bersejarah', 'Gereja & katedral', 'Vihara & kelenteng', 
+    'Rumah sakit', 'Universitas & kampus', 'Perpustakaan', 'Istana', 'Bandar udara', 
+    'Terminal bus', 'Stadion & lapangan olahraga', 'Kuil & candi', 'Benteng dan bunker', 
+    'Pasar dan mall', 'Hotel dan resor', 'Monumen, patung, & memorial', 'Museum', 'Stasiun kereta api'
+  ];
+  
+  if (klasterBangunan.includes(klaster)) {
+    selectClause += `(SAMPLE(?kapasitasVal) AS ?kapasitas) (SAMPLE(?kondisiLabel) AS ?kondisi) (SAMPLE(?webVal) AS ?lamanResmi) (SAMPLE(?arsitekLabel) AS ?arsitek) (GROUP_CONCAT(DISTINCT ?fasilitasLabel; separator=", ") AS ?fasilitasList) (GROUP_CONCAT(DISTINCT ?gayaLabel; separator=", ") AS ?gayaList) `;
+    whereClause += `
+      OPTIONAL { ?site wdt:P1083 ?kapasitasVal . }
+      OPTIONAL { ?site wdt:P5817 ?kondisiItem . ?kondisiItem rdfs:label ?kondisiLabel . FILTER(LANG(?kondisiLabel) = "id") }
+      OPTIONAL { ?site wdt:P856 ?webVal . }
+      OPTIONAL { ?site wdt:P84 ?arsitekItem . ?arsitekItem rdfs:label ?arsitekLabel . FILTER(LANG(?arsitekLabel) = "id") }
+      OPTIONAL { ?site wdt:P912 ?fasilitasItem . ?fasilitasItem rdfs:label ?fasilitasLabel . FILTER(LANG(?fasilitasLabel) = "id") }
+      OPTIONAL { ?site wdt:P149 ?gayaItem . ?gayaItem rdfs:label ?gayaLabel . FILTER(LANG(?gayaLabel) = "id") }
+    `;
+  }
+
+  // 3. KONDISI KHUSUS PER KLASTER
+  if (klaster === 'Wilayah Administratif') {
+    selectClause += `(SAMPLE(?popData) AS ?populasi) (SAMPLE(?govData) AS ?kepalaDaerah) (SAMPLE(?webVal) AS ?lamanResmi) `;
+    whereClause += `
+      OPTIONAL { ?site wdt:P856 ?webVal . }
+      OPTIONAL {
+        ?site p:P1082 ?popStmt . ?popStmt ps:P1082 ?popVal .
+        OPTIONAL { ?popStmt pq:P585 ?popDate . }
+        BIND(CONCAT(STR(?popVal), "|", STR(YEAR(?popDate))) AS ?popData)
+      }
+      OPTIONAL {
+        ?site p:P6 ?govStmt . ?govStmt ps:P6 ?govItem . 
+        ?govItem rdfs:label ?govLabel . FILTER(LANG(?govLabel) = "id")
+        OPTIONAL { ?govStmt pq:P580 ?govDate . }
+        BIND(CONCAT(STR(?govLabel), "|", STR(YEAR(?govDate))) AS ?govData)
+      }
+    `;
+  }
+  else if (klaster === 'Stasiun kereta api') {
+    selectClause += `(GROUP_CONCAT(DISTINCT ?jalurLabel; separator=", ") AS ?jalurList) `;
+    whereClause += `OPTIONAL { ?site wdt:P81 ?jalurItem . ?jalurItem rdfs:label ?jalurLabel . FILTER(LANG(?jalurLabel) = "id") }`;
+  }
+  else if (klaster === 'Museum') {
+    selectClause += `(SAMPLE(?koleksiVal) AS ?jumlahKoleksi) (GROUP_CONCAT(DISTINCT ?spesialisasiLabel; separator=", ") AS ?spesialisasiList) `;
+    whereClause += `
+      OPTIONAL { ?site wdt:P1436 ?koleksiVal . }
+      OPTIONAL { ?site wdt:P101 ?spesialisasiItem . ?spesialisasiItem rdfs:label ?spesialisasiLabel . FILTER(LANG(?spesialisasiLabel) = "id") }
+    `;
+  }
+  else if (['Prasasti dan arca', 'Situs arkeologi', 'Artefak'].includes(klaster)) {
+    selectClause += `(SAMPLE(?tglTemuVal) AS ?tglTemu) (SAMPLE(?tempatTemuLabel) AS ?tempatTemu) `;
+    whereClause += `
+      OPTIONAL { ?site wdt:P575 ?tglTemuVal . }
+      OPTIONAL { ?site wdt:P189 ?tempatTemuItem . ?tempatTemuItem rdfs:label ?tempatTemuLabel . FILTER(LANG(?tempatTemuLabel) = "id") }
+    `;
+  }
+  
+  if (['Prasasti dan arca', 'Lontar', 'Naskah', 'Media massa', 'Publikasi', 'Latar karya sastra'].includes(klaster)) {
+    selectClause += `(GROUP_CONCAT(DISTINCT ?bhsLabel; separator=", ") AS ?bahasaList) (GROUP_CONCAT(DISTINCT ?bentukLabel; separator=", ") AS ?bentukList) (GROUP_CONCAT(DISTINCT ?penulisLabel; separator=", ") AS ?penulisList) (GROUP_CONCAT(DISTINCT ?subjekLabel; separator=", ") AS ?subjekList) (GROUP_CONCAT(DISTINCT ?kolektorLabel; separator=", ") AS ?kolektorList) `;
+    whereClause += `
+      OPTIONAL { ?site wdt:P407 ?bhsItem . ?bhsItem rdfs:label ?bhsLabel . FILTER(LANG(?bhsLabel) = "id") }
+      OPTIONAL { ?site wdt:P7937 ?bentukItem . ?bentukItem rdfs:label ?bentukLabel . FILTER(LANG(?bentukLabel) = "id") }
+      OPTIONAL { ?site wdt:P50 ?penulisItem . ?penulisItem rdfs:label ?penulisLabel . FILTER(LANG(?penulisLabel) = "id") }
+      OPTIONAL { ?site wdt:P921 ?subjekItem . ?subjekItem rdfs:label ?subjekLabel . FILTER(LANG(?subjekLabel) = "id") }
+      OPTIONAL { ?site wdt:P195 ?kolektorItem . ?kolektorItem rdfs:label ?kolektorLabel . FILTER(LANG(?kolektorLabel) = "id") }
+    `;
+  }
+
+  if (klaster === 'Media massa') {
+    selectClause += `(GROUP_CONCAT(DISTINCT ?pemredLabel; separator=", ") AS ?pemredList) (GROUP_CONCAT(DISTINCT ?pendiriLabel; separator=", ") AS ?pendiriList) (SAMPLE(?penerbitLabel) AS ?penerbit) `;
+    whereClause += `
+      OPTIONAL { ?site wdt:P5769 ?pemredItem . ?pemredItem rdfs:label ?pemredLabel . FILTER(LANG(?pemredLabel) = "id") }
+      OPTIONAL { ?site wdt:P112 ?pendiriItem . ?pendiriItem rdfs:label ?pendiriLabel . FILTER(LANG(?pendiriLabel) = "id") }
+      OPTIONAL { ?site wdt:P123 ?penerbitItem . ?penerbitItem rdfs:label ?penerbitLabel . FILTER(LANG(?penerbitLabel) = "id") }
+    `;
+  }
+  else if (klaster === 'Hidangan') {
+    selectClause += `(GROUP_CONCAT(DISTINCT ?bahanLabel; separator=", ") AS ?bahanList) (GROUP_CONCAT(DISTINCT ?caraLabel; separator=", ") AS ?caraList) `;
+    whereClause += `
+      OPTIONAL { ?site wdt:P186 ?bahanItem . ?bahanItem rdfs:label ?bahanLabel . FILTER(LANG(?bahanLabel) = "id") }
+      OPTIONAL { ?site wdt:P2079 ?caraItem . ?caraItem rdfs:label ?caraLabel . FILTER(LANG(?caraLabel) = "id") }
+    `;
+  }
+  else if (klaster === 'Bahasa') {
+    selectClause += `(SAMPLE(?penuturData) AS ?penutur) `;
+    whereClause += `
+      OPTIONAL {
+        ?site p:P1098 ?penuturStmt . ?penuturStmt ps:P1098 ?penuturVal .
+        OPTIONAL { ?penuturStmt pq:P585 ?penuturDate . }
+        BIND(CONCAT(STR(?penuturVal), "|", STR(YEAR(?penuturDate))) AS ?penuturData)
+      }
+    `;
+  }
+  else if (klaster === 'Tokoh') {
+    selectClause += `(SAMPLE(?wafatVal) AS ?tglWafat) (GROUP_CONCAT(DISTINCT ?kerjaLabel; separator=", ") AS ?pekerjaanList) (GROUP_CONCAT(DISTINCT ?ahliLabel; separator=", ") AS ?spesialisasiList) `;
+    whereClause += `
+      OPTIONAL { ?site wdt:P570 ?wafatVal . }
+      OPTIONAL { ?site wdt:P106 ?kerjaItem . ?kerjaItem rdfs:label ?kerjaLabel . FILTER(LANG(?kerjaLabel) = "id") }
+      OPTIONAL { ?site wdt:P101 ?ahliItem . ?ahliItem rdfs:label ?ahliLabel . FILTER(LANG(?ahliLabel) = "id") }
+    `;
+  }
+  else if (klaster === 'Gunung') {
+    selectClause += `(SAMPLE(?gunungLabel) AS ?pegunungan) `;
+    whereClause += `OPTIONAL { ?site wdt:P4552 ?gunungItem . ?gunungItem rdfs:label ?gunungLabel . FILTER(LANG(?gunungLabel) = "id") }`;
+  }
+  else if (['Gempa bumi', 'Bencana lainnya', 'Peristiwa lainnya', 'Perang & konflik'].includes(klaster)) {
+    selectClause += `(SAMPLE(?korbanVal) AS ?korban) `;
+    whereClause += `OPTIONAL { ?site wdt:P1120 ?korbanVal . }`;
+  }
+
+  // Gabungkan semua kepingan menjadi satu Kueri Utuh
+  return `${selectClause} WHERE { ${whereClause} BIND (SUBSTR(STR(?site), 32) AS ?siteQid) } GROUP BY ?siteQid`;
 }
 
 const ABOUT_SPARQL_QUERY = ``;
