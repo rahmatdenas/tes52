@@ -351,7 +351,7 @@ function populateCoordinatesData() {
 
   let klausaKoordinat = '';
 
-  // 3. Logika percabangan yang baru
+// 3. Logika percabangan yang baru
   if (!klasterTanpaKoordinatLangsung.includes(namaKlaster)) {
     // Jika BANGUNAN atau ALAM FISIK (Gunung, Pantai), cari koordinat langsung (P625)
     klausaKoordinat = `?site p:P625 ?coordStatement .`;
@@ -359,6 +359,10 @@ function populateCoordinatesData() {
     // Jika BUDAYA, TOKOH, atau BENDA BERGERAK, cari lokasinya dulu, baru ambil koordinatnya
     klausaKoordinat = `
     ?site wdt:${propLokasi} ?p131Lokasi .
+    
+    # KUNCI PERBAIKAN: Kecualikan Indonesia (Q252) agar tidak mengambil koordinat tengah laut/negara
+    FILTER(?p131Lokasi != wd:Q252) 
+    
     ?p131Lokasi p:P625 ?coordStatement .`;
   }
 
