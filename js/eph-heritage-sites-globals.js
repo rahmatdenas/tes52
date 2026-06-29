@@ -32,7 +32,7 @@ const KUMPULAN_KUERI_0 = {
   // === TEMPLAT BARU: LOKASI OPTIONAL TAPI WAJIB INDONESIA ===
 'khusus_negara_all': `SELECT DISTINCT ?siteQid ?siteLabel ?provinsiQid ?provinsiLabel ?p131LokasiLabel ?tahunBerdiriMentah ?tahunPresisi
   WHERE {
-    ?site wdt:P17 wd:Q252 .
+    <PLACEHOLDER_FILTER_NASIONAL> 
     ?site wdt:P31 ?jenis .
     VALUES ?jenis { <PLACEHOLDER_JENIS> }   
     
