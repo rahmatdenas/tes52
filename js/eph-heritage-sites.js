@@ -1063,17 +1063,14 @@ let isBersejarah = false;
     prefixLokasi = 'Tempat terbit';
     prefixTahun = 'Terbit perdana';
   } else if (['Lukisan'].includes(currentNamaKlaster)) {
-    prefixLokasi = 'Koleksi';
+    prefixLokasi = 'Lokasi';
     prefixTahun = 'Dilukis';
   } else if (['Lontar', 'Naskah'].includes(currentNamaKlaster)) {
-    prefixLokasi = 'Koleksi';
+    prefixLokasi = 'Lokasi';
     prefixTahun = 'Disalin';
   } else if (['Gempa bumi dan tsunami', 'Peristiwa lainnya', 'Perang & konflik', 'Bencana lainnya'].includes(currentNamaKlaster)) {
     prefixLokasi = 'Tempat kejadian/terdampak';
     prefixTahun = 'Pada';
-  } else if (['Menhir & dolmen'].includes(currentNamaKlaster)) {
-    prefixLokasi = 'Terletak di';
-    prefixTahun = 'Peninggalan';
   }   else if (['Situs arkeologi'].includes(currentNamaKlaster)) {
     prefixLokasi = 'Terletak di';
     prefixTahun = 'Era/periode';
