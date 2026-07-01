@@ -388,7 +388,7 @@ optgroup option { padding-left: 10px; }
 }
 
 #details .main-text { padding: 0 170px 0 0; }
-#details .main-text .loader { margin: 40px auto 40px; }
+#details .main-text .loader { margin: 40px auto 57px; }
 #details .main-text p:first-child { margin-top: -5px; }
 
 .arsip-block p { padding-bottom: 15px !important; }
