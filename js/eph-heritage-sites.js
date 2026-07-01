@@ -1129,7 +1129,7 @@ if (record.lat !== undefined && record.lon !== undefined) {
       
   designationsHtml += '</ul>';
 
-  let arsipHtml = `<div id="arsip-container-${qid}" class="loading"><div class="loader" style="width: 20px; height: 20px; border-width: 2px; margin: 0;"></div></div>`;
+  let arsipHtml = `<div id="arsip-container-${qid}" class="loading"><div class="loader" style="width: 20px; height: 20px; border-width: 2px; margin-top: 8px;"></div></div>`;
 
   let panelElem = document.createElement('div');
   
