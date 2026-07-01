@@ -1025,29 +1025,12 @@ articleHtml = `<div class="article main-text nodata"><p>${currentNamaKlaster} in
   }
   
 let wikiUrlUtama = `https://www.wikidata.org/wiki/${qid}`;
-  let tautanSuntingRingkasan = `<a href="${wikiUrlUtama}" target="_blank" class="sunting-link" title="Sunting data di Wikidata" aria-label="Sunting data di Wikidata"></a>`;
+let tautanSuntingRingkasan = `<a href="${wikiUrlUtama}" target="_blank" class="sunting-link" title="Sunting data di Wikidata" aria-label="Sunting data di Wikidata"></a>`;
 
-  // ==========================================
-  // PERBAIKAN 3: RENDER HEADER KLUSTER DINAMIS
-  // ==========================================
-let isBersejarah = false;
-  if (record.rawTahunBerdiri) {
-    let tahunBangunan = parseInt(record.rawTahunBerdiri.substring(0, 4));
-    if (tahunBangunan <= (new Date().getFullYear() - 50)) isBersejarah = true;
-  }
-
-  // Daftar bangunan/struktur fisik yang masuk akal diberi label "Bersejarah"
-  let klasterBisaBersejarah = [
-    'Masjid', 'Gereja & katedral'
-  ]; 
-  
-  let teksJudul = `Informasi ${currentNamaKlaster}`;
-  if (klasterBisaBersejarah.includes(currentNamaKlaster) && isBersejarah) {
-    teksJudul = `Informasi ${currentNamaKlaster} Bersejarah`;
-  }
-
-  let designationsHtml = `<h2 style="margin-top:10px">${teksJudul} ${tautanSuntingRingkasan}</h2>`;
-  designationsHtml += '<ul class="designations">';
+// Hapus logika klasterBisaBersejarah dan isBersejarah.
+// Gunakan span dengan ID spesifik untuk mencegat perubahan teks nanti.
+let designationsHtml = `<h2 style="margin-top:10px"><span id="header-text-${qid}">Informasi</span> ${tautanSuntingRingkasan}</h2>`;
+designationsHtml += '<ul class="designations">';
 
   // Siapkan daftar provinsi & Lokasi
   let arrayProvinsi = Object.values(record.designations).filter(p => p !== 'Tidak dalam Provinsi');
