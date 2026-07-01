@@ -121,7 +121,7 @@ nav li.active a, nav li a.active {
   justify-content: center;
   align-items: center;
   flex: 1;
-  background: #fff;
+  background: #red;
 }
 
 .panel-content {
