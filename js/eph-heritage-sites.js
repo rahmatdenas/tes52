@@ -571,12 +571,32 @@ const labelKamus = {
 
 if (record.dynamicProps && Object.keys(record.dynamicProps).length > 0) {
     
-    // CEGAT WIKIBOOKS: Simpan ke variabel lalu hapus dari antrean agar tidak diproses looping
+    // CEGAT WIKIBOOKS
     if (record.dynamicProps.wikibooks) {
       urlWikibooks = record.dynamicProps.wikibooks;
       delete record.dynamicProps.wikibooks;
     }
 
+    // CEGAT TIPELIST (P31) UNTUK HEADER H2
+    if (record.dynamicProps.tipeList) {
+      // Cari elemen span header berdasarkan QID
+      let headerTextElem = document.getElementById(`header-text-${qid}`);
+      
+      // Jika elemen ditemukan (jendela belum ditutup), timpa teksnya
+      if (headerTextElem && record.dynamicProps.tipeList.trim() !== '') {
+        // Trik agar awal huruf kapital semua (opsional, untuk kerapian)
+        let tipeRapi = record.dynamicProps.tipeList
+          .split(', ')
+          .map(kata => kata.charAt(0).toUpperCase() + kata.slice(1))
+          .join(', ');
+          
+        headerTextElem.textContent = tipeRapi;
+      }
+      // Hapus dari antrean agar tidak diprint di bawah menjadi <p> biasa
+      delete record.dynamicProps.tipeList;
+    }
+
+    // Looping sisanya...
     for (let key in record.dynamicProps) {
       let rawValue = record.dynamicProps[key];
       let formattedValue = rawValue;
@@ -1117,7 +1137,7 @@ if (record.lat !== undefined && record.lon !== undefined) {
   // Sisa perakitan HTML ke panel...
   let eventsHtmlPlaceholder = `
     <div id="events-container-${qid}" class="loading">
-      <div class="loader" style="width: 20px; height: 20px; border-width: 3px; margin-top: 8px;"></div>
+      <div class="loader" style="width: 20px; height: 20px; border-width: 2px; margin-top: 4px;"></div>
     </div>`;
 
   designationsHtml +=
@@ -1129,7 +1149,7 @@ if (record.lat !== undefined && record.lon !== undefined) {
       
   designationsHtml += '</ul>';
 
-  let arsipHtml = `<div id="arsip-container-${qid}" class="loading"><div class="loader" style="width: 20px; height: 20px; border-width: 3px; margin-top: 8px;"></div></div>`;
+  let arsipHtml = `<div id="arsip-container-${qid}" class="loading"><div class="loader" style="width: 20px; height: 20px; border-width: 2px; margin-top: 8px;"></div></div>`;
 
   let panelElem = document.createElement('div');
   
