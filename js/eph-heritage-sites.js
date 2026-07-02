@@ -345,16 +345,11 @@ function populateCoordinatesData() {
   let daftarQid = Object.keys(Records).map(id => 'wd:' + id);
   if (daftarQid.length === 0) return Promise.resolve();
 
-  // Ambil nama klaster untuk menentukan jalurnya
   let inputTxt = document.getElementById('jenis-input').value.trim();
   let namaKlaster = dapatkanNamaKlaster(inputTxt);
-  
   let templateKueri = KUMPULAN_KUERI_1['universal'];
-  
-  // 1. Ambil P-ID menggunakan fungsi yang sudah kita buat sebelumnya
   let propLokasi = dapatkanPropertiWikidata(namaKlaster); 
   
-  // 2. Daftarkan klaster apa saja yang TIDAK PUNYA koordinat langsung (Cek lagi Lukisan Lontar dan Naskah?)
   const klasterTanpaKoordinatLangsung = [
     'Hidangan', 'Pakaian', 'Tari dan pertunjukan', 'Ritual dan upacara',  'Artefak',
     'Budaya rakyat', 'Lukisan', 'Lontar', 'Naskah', 'Perang & konflik',
@@ -362,45 +357,47 @@ function populateCoordinatesData() {
   ];
 
   let klausaKoordinat = '';
-
-// 3. Logika percabangan yang baru
   if (!klasterTanpaKoordinatLangsung.includes(namaKlaster)) {
-    // Jika BANGUNAN atau ALAM FISIK (Gunung, Pantai), cari koordinat langsung (P625)
     klausaKoordinat = `?site p:P625 ?coordStatement .`;
   } else {
-    // Jika BUDAYA, TOKOH, atau BENDA BERGERAK, cari lokasinya dulu, baru ambil koordinatnya
     klausaKoordinat = `
     ?site wdt:${propLokasi} ?p131Lokasi .
-    
-    # KUNCI PERBAIKAN: Kecualikan Indonesia (Q252) agar tidak mengambil koordinat tengah laut/negara
     FILTER(?p131Lokasi != wd:Q252) 
-    
     ?p131Lokasi p:P625 ?coordStatement .`;
   }
 
-  let kelompokCicilan = potongJadiKelompok(daftarQid, 1000);
+  // PERBAIKAN 1: Turunkan ukuran chunk agar string SPARQL tidak terlalu panjang
+  let kelompokCicilan = potongJadiKelompok(daftarQid, 1000); 
 
-  let daftarJanji = kelompokCicilan.map(cicilan => {
-    let teksQids = cicilan.join(' ');
-    let kueriFinal = templateKueri
-      .replace(/<PLACEHOLDER_QIDS>/g, teksQids)
-      .replace(/<PLACEHOLDER_KLAUSA_KOORDINAT>/g, klausaKoordinat);
+  // PERBAIKAN 2: Eksekusi berurutan (Sequential) menggunakan async/await
+  return new Promise(async (resolve, reject) => {
+    try {
+      for (let i = 0; i < kelompokCicilan.length; i++) {
+        let teksQids = kelompokCicilan[i].join(' ');
+        let kueriFinal = templateKueri
+          .replace(/<PLACEHOLDER_QIDS>/g, teksQids)
+          .replace(/<PLACEHOLDER_KLAUSA_KOORDINAT>/g, klausaKoordinat);
 
-    return queryWdqsThenProcess(
-      kueriFinal,
-      function(result) {
-        let record = Records[result.siteQid.value];
-        if (!record) return; 
+        // Tunggu satu chunk selesai sebelum lanjut ke chunk berikutnya
+        await queryWdqsThenProcess(
+          kueriFinal,
+          function(result) {
+            let record = Records[result.siteQid.value];
+            if (!record) return; 
+            let wktBits = result.coord.value.split(/\(|\)| /);
+            record.lat = parseFloat(wktBits[2]);
+            record.lon = parseFloat(wktBits[1]);
+          }
+        );
 
-        let wktBits = result.coord.value.split(/\(|\)| /);
-        record.lat = parseFloat(wktBits[2]);
-        record.lon = parseFloat(wktBits[1]);
+        // Beri jeda 500ms antar-request agar server Wikidata tidak memblokir IP
+        await new Promise(r => setTimeout(r, 500)); 
       }
-    );
-  });
-
-  return Promise.all(daftarJanji).then(function() {
-    BootstrapDataIsLoaded = true;
+      BootstrapDataIsLoaded = true;
+      resolve();
+    } catch (error) {
+      reject(error);
+    }
   });
 }
 
@@ -408,31 +405,39 @@ function populateImageAndWikipediaData() {
   let daftarQid = Object.keys(Records).map(id => 'wd:' + id);
   if (daftarQid.length === 0) return Promise.resolve();
 
-  let kelompokCicilan = potongJadiKelompok(daftarQid, 1000);
+  // PERBAIKAN 1: Turunkan ukuran chunk
+  let kelompokCicilan = potongJadiKelompok(daftarQid, 150); 
 
-  let daftarJanji = kelompokCicilan.map(cicilan => {
-    let teksQids = cicilan.join(' ');
-    let kueriFinal = SPARQL_QUERY_3_TEMPLATE.replace('<PLACEHOLDER_QIDS>', teksQids);
+  // PERBAIKAN 2: Eksekusi berurutan (Sequential)
+  return new Promise(async (resolve, reject) => {
+    try {
+      for (let i = 0; i < kelompokCicilan.length; i++) {
+        let teksQids = kelompokCicilan[i].join(' ');
+        let kueriFinal = SPARQL_QUERY_3_TEMPLATE.replace('<PLACEHOLDER_QIDS>', teksQids);
 
-    return queryWdqsThenProcess(
-      kueriFinal,
-      function(result) {
-        let record = Records[result.siteQid.value];      
-        if (!record) return; 
+        await queryWdqsThenProcess(
+          kueriFinal,
+          function(result) {
+            let record = Records[result.siteQid.value];      
+            if (!record) return; 
 
-        if ('image' in result) {
-          if (!record.imageFilename) {
-            record.imageFilename = extractImageFilename(result.image);
+            if ('image' in result && !record.imageFilename) {
+              record.imageFilename = extractImageFilename(result.image);
+            }      
+            if ('wikipediaUrlTitle' in result) {
+              record.articleTitle = decodeURIComponent(result.wikipediaUrlTitle.value);
+            }
           }
-        }      
-        if ('wikipediaUrlTitle' in result) {
-          record.articleTitle = decodeURIComponent(result.wikipediaUrlTitle.value);
-        }
-      }
-    );
-  });
+        );
 
-  return Promise.all(daftarJanji);
+        // Jeda perlindungan server
+        await new Promise(r => setTimeout(r, 500));
+      }
+      resolve();
+    } catch (error) {
+      reject(error);
+    }
+  });
 }
 
 function populateImportantEventsData(qid) {
