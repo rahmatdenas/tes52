@@ -254,14 +254,17 @@ function queryWdqsThenProcess(query, processEachResult, postprocessCallback) {
       let index = activeXhrs.indexOf(xhr);
       if (index > -1) activeXhrs.splice(index, 1);
 
-if (xhr.status === 200) {
-resolve(JSON.parse(xhr.responseText));
-  } catch (parseError) {
-    // Jika JSON cacat/terpotong, tangkap erornya tanpa membuat aplikasi crash
-    console.error('Data JSON dari server cacat atau terpotong (Payload terlalu besar).', parseError);
-    reject('JSON_PARSE_ERROR');
-  }
-} else if (xhr.status === 0) {
+      if (xhr.status === 200) {
+        // --- PERBAIKAN DI SINI: TAMBAHKAN KATA KUNCI "try {" ---
+        try {
+          resolve(JSON.parse(xhr.responseText));
+        } catch (parseError) {
+          // Jika JSON cacat/terpotong, tangkap erornya tanpa membuat aplikasi crash
+          console.error('Data JSON dari server cacat atau terpotong (Payload terlalu besar).', parseError);
+          reject('JSON_PARSE_ERROR');
+        }
+        // --------------------------------------------------------
+      } else if (xhr.status === 0) {
         // Cek apakah ini sengaja dibatalkan
         if (xhr.isAbortedManually) {
           reject('ABORTED');
@@ -273,6 +276,7 @@ resolve(JSON.parse(xhr.responseText));
         reject(xhr.status);
       }
     };
+    
     xhr.open('POST', WDQS_API_URL, true);
     xhr.overrideMimeType('text/plain');
     xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
