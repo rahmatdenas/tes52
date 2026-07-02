@@ -386,6 +386,9 @@ function populateCoordinatesData() {
   // PERBAIKAN 2: Eksekusi berurutan (Sequential) menggunakan async/await
   return new Promise(async (resolve, reject) => {
     try {
+      let totalData = daftarQid.length;
+    let dataTerproses = 0;
+      
 for (let i = 0; i < kelompokCicilan.length; i++) {
       // Hitung dan perbarui UI sebelum menembak kueri
       dataTerproses += kelompokCicilan[i].length;
