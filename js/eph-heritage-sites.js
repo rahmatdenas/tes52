@@ -49,7 +49,7 @@ function loadPrimaryData() {
 
   populateProvinceTypesData() 
     .then(() => {
-      return populateCoordinatesData().then(populateMapAndIndex);
+      return ().then(populateMapAndIndex);
     })
     .then(() => {
       enableApp(); 
@@ -384,9 +384,11 @@ function populateCoordinatesData() {
           function(result) {
             let record = Records[result.siteQid.value];
             if (!record) return; 
-            let wktBits = result.coord.value.split(/\(|\)| /);
-            record.lat = parseFloat(wktBits[2]);
-            record.lon = parseFloat(wktBits[1]);
+let coordMatch = result.coord.value.match(/[-+]?[0-9]*\.?[0-9]+/g);
+if (coordMatch && coordMatch.length >= 2) {
+  record.lon = parseFloat(coordMatch[0]); // Angka pertama adalah Longitude
+  record.lat = parseFloat(coordMatch[1]); // Angka kedua adalah Latitude
+}
           }
         );
 
@@ -711,7 +713,7 @@ function populateMapAndIndex() {
   let mapMarkers = [];
   Object.entries(Records).forEach(entry => {
     let qid = entry[0], record = entry[1];
-if (!record.isCompound && record.lat !== undefined && record.lon !== undefined) {
+if (!record.isCompound && !isNaN(record.lat) && !isNaN(record.lon)) {
       let mapMarker = L.marker(
         [record.lat, record.lon],
         { icon: L.ExtraMarkers.icon({ icon: '', markerColor : 'orange-dark' }) },
