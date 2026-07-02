@@ -406,15 +406,18 @@ for (let i = 0; i < kelompokCicilan.length; i++) {
         await queryWdqsThenProcess(
           kueriFinal,
           function(result) {
-            let record = Records[result.siteQid.value];
-            if (!record) return; 
-let coordMatch = result.coord.value.match(/[-+]?[0-9]*\.?[0-9]+/g);
-if (coordMatch && coordMatch.length >= 2) {
-  record.lon = parseFloat(coordMatch[0]); // Angka pertama adalah Longitude
-  record.lat = parseFloat(coordMatch[1]); // Angka kedua adalah Latitude
-}
+let record = Records[result.siteQid.value];
+        if (!record) return; 
+        if ('coord' in result && result.coord && result.coord.value) {
+          
+          let coordMatch = result.coord.value.match(/[-+]?[0-9]*\.?[0-9]+/g);
+          if (coordMatch && coordMatch.length >= 2) {
+            record.lon = parseFloat(coordMatch[0]); 
+            record.lat = parseFloat(coordMatch[1]); 
           }
-        );
+          
+        }
+      });
 
         // Beri jeda 500ms antar-request agar server Wikidata tidak memblokir IP
         await new Promise(r => setTimeout(r, 500)); 
