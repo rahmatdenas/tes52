@@ -406,7 +406,7 @@ function populateImageAndWikipediaData() {
   if (daftarQid.length === 0) return Promise.resolve();
 
   // PERBAIKAN 1: Turunkan ukuran chunk
-  let kelompokCicilan = potongJadiKelompok(daftarQid, 150); 
+  let kelompokCicilan = potongJadiKelompok(daftarQid, 1000); 
 
   // PERBAIKAN 2: Eksekusi berurutan (Sequential)
   return new Promise(async (resolve, reject) => {
