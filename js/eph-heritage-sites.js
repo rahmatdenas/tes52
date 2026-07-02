@@ -49,7 +49,7 @@ function loadPrimaryData() {
 
   populateProvinceTypesData() 
     .then(() => {
-      return ().then(populateMapAndIndex);
+      return populateCoordinatesData().then(populateMapAndIndex);
     })
     .then(() => {
       enableApp(); 
