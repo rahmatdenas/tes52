@@ -1017,7 +1017,7 @@ function applyIntersectionFilter(preventZoom = false) {
   renderNextChunk();
   updateFeatureCounts(validRecords.length);
 
-  setTimeout(() => {
+setTimeout(() => {
     validRecords.forEach(record => {
       if (record.mapMarker) validMarkers.push(record.mapMarker);
     });
@@ -1025,7 +1025,11 @@ function applyIntersectionFilter(preventZoom = false) {
     if (validMarkers.length > 0) {
       Cluster.addLayers(validMarkers);
       if (!preventZoom) {
-        Map.fitBounds(Cluster.getBounds());
+        // --- TAMBAHKAN PENGECEKAN INI ---
+        let bounds = Cluster.getBounds();
+        if (bounds.isValid()) {
+          Map.fitBounds(bounds);
+        }
       }
     }
   }, 10);
