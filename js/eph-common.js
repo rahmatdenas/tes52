@@ -256,11 +256,18 @@ function queryWdqsThenProcess(query, processEachResult, postprocessCallback) {
 
       if (xhr.status === 200) {
         // --- PERBAIKAN DI SINI: TAMBAHKAN KATA KUNCI "try {" ---
-        try {
-          resolve(JSON.parse(xhr.responseText));
+try {
+          // --- PERBAIKAN: SAPU BERSIH KARAKTER KONTROL ILEGAL ---
+          let teksMentah = xhr.responseText;
+          
+          // Regex ini mengubah semua karakter kontrol ASCII (seperti Enter/Tab liar) menjadi spasi
+          // sehingga struktur teks JSON aman untuk dibaca peramban
+          let teksBersih = teksMentah.replace(/[\u0000-\u001F]+/g, " "); 
+          
+          resolve(JSON.parse(teksBersih));
+          // --------------------------------------------------------
         } catch (parseError) {
-          // Jika JSON cacat/terpotong, tangkap erornya tanpa membuat aplikasi crash
-          console.error('Data JSON dari server cacat atau terpotong (Payload terlalu besar).', parseError);
+          console.error('Data JSON dari server cacat atau terpotong.', parseError);
           reject('JSON_PARSE_ERROR');
         }
         // --------------------------------------------------------
