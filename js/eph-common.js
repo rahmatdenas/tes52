@@ -255,8 +255,13 @@ function queryWdqsThenProcess(query, processEachResult, postprocessCallback) {
       if (index > -1) activeXhrs.splice(index, 1);
 
 if (xhr.status === 200) {
-        resolve(JSON.parse(xhr.responseText));
-      } else if (xhr.status === 0) {
+resolve(JSON.parse(xhr.responseText));
+  } catch (parseError) {
+    // Jika JSON cacat/terpotong, tangkap erornya tanpa membuat aplikasi crash
+    console.error('Data JSON dari server cacat atau terpotong (Payload terlalu besar).', parseError);
+    reject('JSON_PARSE_ERROR');
+  }
+} else if (xhr.status === 0) {
         // Cek apakah ini sengaja dibatalkan
         if (xhr.isAbortedManually) {
           reject('ABORTED');
