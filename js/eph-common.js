@@ -255,28 +255,25 @@ function queryWdqsThenProcess(query, processEachResult, postprocessCallback) {
       if (index > -1) activeXhrs.splice(index, 1);
 
       if (xhr.status === 200) {
-        // --- PERBAIKAN DI SINI: TAMBAHKAN KATA KUNCI "try {" ---
-try {
-          // --- PERBAIKAN: SAPU BERSIH KARAKTER KONTROL ILEGAL ---
-          let teksMentah = xhr.responseText;
-          
-          // Regex ini mengubah semua karakter kontrol ASCII (seperti Enter/Tab liar) menjadi spasi
-          // sehingga struktur teks JSON aman untuk dibaca peramban
-          let teksBersih = teksMentah.replace(/[\u0000-\u001F]+/g, " "); 
-          
-          resolve(JSON.parse(teksBersih));
-          // --------------------------------------------------------
+        try {
+          // PERBAIKAN 1: Karena kita sudah set responseType = 'json' di bawah,
+          // xhr.response sudah otomatis menjadi objek JSON (bukan teks mentah lagi)!
+          // Tidak perlu Regex raksasa dan JSON.parse manual.
+          if (xhr.response && xhr.response.results) {
+            resolve(xhr.response);
+          } else {
+            // Jika fallback diperlukan untuk browser super lawas
+            let data = typeof xhr.response === 'string' ? JSON.parse(xhr.response) : xhr.response;
+            resolve(data);
+          }
         } catch (parseError) {
           console.error('Data JSON dari server cacat atau terpotong.', parseError);
           reject('JSON_PARSE_ERROR');
         }
-        // --------------------------------------------------------
       } else if (xhr.status === 0) {
-        // Cek apakah ini sengaja dibatalkan
         if (xhr.isAbortedManually) {
           reject('ABORTED');
         } else {
-          // Jika tidak ada tanda sengaja, berarti ini murni masalah jaringan!
           reject('NETWORK_ERROR'); 
         }
       } else {
@@ -285,17 +282,30 @@ try {
     };
     
     xhr.open('POST', WDQS_API_URL, true);
-    xhr.overrideMimeType('text/plain');
+    
+    // PERBAIKAN 2: Minta peramban memprosesnya secara native sebagai objek JSON
+    xhr.responseType = 'json'; 
+    
+    // HAPUS overrideMimeType('text/plain') karena kita ingin JSON murni
+    
+    // PERBAIKAN 3: Tambahkan header Accept standar WDQS
+    xhr.setRequestHeader('Accept', 'application/sparql-results+json');
     xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
     xhr.setRequestHeader('Api-User-Agent', 'WikiSurau/1.0 (mailto:rahmatdenas@gmail.com)');
+    
     if (SparqlValuesClause) query = query.replace('<SPARQLVALUESCLAUSE>', SparqlValuesClause);
     xhr.send('format=json&query=' + encodeURIComponent(query));
   });
 
   promise = promise.then(data => {
-    data.results.bindings.forEach(processEachResult);
+    // Pastikan data bindings ada sebelum dilooping
+    if (data && data.results && data.results.bindings) {
+      data.results.bindings.forEach(processEachResult);
+    }
   });
+  
   if (postprocessCallback) promise = promise.then(postprocessCallback);
+  
   return promise;
 }
 
