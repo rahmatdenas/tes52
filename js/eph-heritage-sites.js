@@ -97,6 +97,18 @@ function loadPrimaryData() {
     });
 }
 
+function perbaruiStatusLoading(judul, detail) {
+  let loadingText = document.getElementById('loading-text');
+  let loadingDetail = document.getElementById('loading-detail');
+  
+  if (loadingText && judul) {
+    loadingText.textContent = judul;
+  }
+  if (loadingDetail && detail) {
+    loadingDetail.textContent = detail;
+  }
+}
+
 function doPreProcessing() {
   let anchorElem = document.getElementById('wdqs-link');
   anchorElem.href = 'https://query.wikidata.org/#' + encodeURIComponent(ABOUT_SPARQL_QUERY);
@@ -239,13 +251,15 @@ function populateProvinceTypesData() {
   
   // 2. RENDER LOADING LANGSUNG DI SINI SECARA UTUH
   let indexList = document.getElementById('index-list');
-  if (indexList) {
+ if (indexList) {
     indexList.innerHTML = `
       <div style="padding: 40px 20px; text-align: center; line-height: 1.6;">
         <h3 id="loading-text" style="margin-bottom: 10px; margin-top:0; color: #333;">
-          Sedang Menarik Data ${currentNamaKlaster} di ${currentNamaWilayah}...
+          Mencari ${currentNamaKlaster} di ${currentNamaWilayah}...
         </h3>
-        <p style="color: #666; font-size:14px; margin-bottom: 25px;">Mohon tunggu sebentar, Wikidata sedang mencari dan menyusun daftar entitas untuk Anda.</p>
+        <p id="loading-detail" style="color: #666; font-size:14px; margin-bottom: 25px;">
+          Menghubungi server Wikidata...
+        </p>
         <div class="loader" style="margin: 0 auto; width: 40px; height: 40px; border-width: 4px;"></div>
       </div>
     `;
@@ -372,8 +386,15 @@ function populateCoordinatesData() {
   // PERBAIKAN 2: Eksekusi berurutan (Sequential) menggunakan async/await
   return new Promise(async (resolve, reject) => {
     try {
-      for (let i = 0; i < kelompokCicilan.length; i++) {
-        let teksQids = kelompokCicilan[i].join(' ');
+for (let i = 0; i < kelompokCicilan.length; i++) {
+      // Hitung dan perbarui UI sebelum menembak kueri
+      dataTerproses += kelompokCicilan[i].length;
+      perbaruiStatusLoading(
+        `Menarik Data Koordinat`, 
+        `Mendapatkan lokasi: ${dataTerproses} dari ${totalData} entitas...`
+      );
+
+      let teksQids = kelompokCicilan[i].join(' ');
         let kueriFinal = templateKueri
           .replace(/<PLACEHOLDER_QIDS>/g, teksQids)
           .replace(/<PLACEHOLDER_KLAUSA_KOORDINAT>/g, klausaKoordinat);
@@ -396,6 +417,10 @@ if (coordMatch && coordMatch.length >= 2) {
         await new Promise(r => setTimeout(r, 500)); 
       }
       BootstrapDataIsLoaded = true;
+
+      // Perbarui status saat akan menggambar peta
+    perbaruiStatusLoading(`Menggambar Peta`, `Menyiapkan titik lokasi di atas peta...`);
+      
       resolve();
     } catch (error) {
       reject(error);
@@ -413,7 +438,15 @@ function populateImageAndWikipediaData() {
   // PERBAIKAN 2: Eksekusi berurutan (Sequential)
   return new Promise(async (resolve, reject) => {
     try {
-      for (let i = 0; i < kelompokCicilan.length; i++) {
+    let totalData = daftarQid.length;
+    let dataTerproses = 0;
+
+    for (let i = 0; i < kelompokCicilan.length; i++) {
+      dataTerproses += kelompokCicilan[i].length;
+      perbaruiStatusLoading(
+        `Mengekstrak Metadata`, 
+        `Memeriksa artikel & foto: ${dataTerproses} dari ${totalData} entitas...`
+      );
         let teksQids = kelompokCicilan[i].join(' ');
         let kueriFinal = SPARQL_QUERY_3_TEMPLATE.replace('<PLACEHOLDER_QIDS>', teksQids);
 
