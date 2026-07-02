@@ -382,12 +382,22 @@ function processHashChange() {
 
 function activateMapMarker(qid) {
   let record = Records[qid];
+  
+  // ==========================================
+  // PERBAIKAN 1: CEGAT KOORDINAT KOSONG/CACAT
+  // ==========================================
+  if (!record || typeof record.lat !== 'number' || typeof record.lon !== 'number' || isNaN(record.lat) || isNaN(record.lon)) {
+    console.warn(`Entitas ${qid} tidak memiliki koordinat yang valid. Aksi peta dibatalkan.`);
+    return; // Berhenti di sini, selamatkan peta dari kehancuran!
+  }
+
   if (!record.mapMarker) return; 
 
   // Hitung berapa banyak entitas yang berbagi koordinat persis dengan item ini
   let countSameLocation = 0;
-currentFilteredRecords.forEach(r => {
-    if (r.lat === record.lat && r.lon === record.lon) {
+  currentFilteredRecords.forEach(r => {
+    // Tambahkan juga perlindungan di dalam loop ini
+    if (typeof r.lat === 'number' && typeof r.lon === 'number' && r.lat === record.lat && r.lon === record.lon) {
       countSameLocation++;
     }
   });
@@ -399,26 +409,19 @@ currentFilteredRecords.forEach(r => {
 
     // 2. Beri jeda sedikit agar peta selesai merender geseran kamera
     setTimeout(() => {
-      // Cari elemen gelembung klaster yang menampung titik marker ini
       let visibleParent = Cluster.getVisibleParent(record.mapMarker);
-      
-      // Pastikan klasternya ditemukan di layar dan memiliki elemen HTML (ikon)
       if (visibleParent && visibleParent._icon) {
-        
-        // Suntikkan kelas CSS animasi denyut
         visibleParent._icon.classList.add('cluster-efek-denyut');
-        
-        // Bersihkan (hapus) kelas CSS tersebut setelah 4.5 detik (3x detak denyut)
         setTimeout(() => {
           if (visibleParent._icon) {
             visibleParent._icon.classList.remove('cluster-efek-denyut');
           }
         }, 4500);
       }
-    }, 350); // Jeda 350 milidetik sebelum animasi dimulai
+    }, 350);
 
   } else {
-    // Skenario Normal: Jumlah aman, biarkan sistem mengurai klaster dan membuka popup
+    // Skenario Normal
     Cluster.zoomToShowLayer(
       record.mapMarker,
       function() {
